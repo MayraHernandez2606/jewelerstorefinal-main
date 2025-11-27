@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carrito - JewelerFinal</title>
+    <link rel="stylesheet" href="css/estilos.css">
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Dancing+Script&display=swap" rel="stylesheet">
+</head>
+<body>
+  <header class="encabezado">
+    <img src="img/logo.png" alt="Logo JewelerFinal" class="logo">
+    <nav class="navegacion">
+      <a href="index.html">Inicio</a>
+      <a href="catalogo.html">Catálogo</a>
+      <a href="promociones.html">Promociones</a>
+      <a href="carrito.html" class="active">Carrito</a>
+    </nav>
+  </header>
+
+  <main>
+    <a href="catalogo.html" class="boton-verde" style="margin: 20px; display:inline-block;">Seguir Comprando</a>
+    
+    <section class="carrito-contenedor" style="padding: 20px; max-width: 800px; margin: 0 auto;">
+        <h1 style="text-align:center; font-family: 'Great Vibes'; font-size: 3rem; color: #928135c9;">Tu Carrito de Compras</h1>
+        
+        <ul id="carrito-lista" class="lista-carrito">
+            </ul>
+        
+        <h3 id="total" style="text-align:right; font-size: 1.5rem; color:#163415;">Total: C$ 0.00</h3>
+        
+        <button class="boton-verde" onclick="vaciarCarrito()" style="background-color: #d9534f; margin-bottom: 30px;">Vaciar Carrito</button>
+
+        <hr style="border: 1px solid #928135c9; margin: 30px 0;">
+
+        <div id="formulario-envio" style="background-color: #fff8f0; padding: 30px; border-radius: 15px; border: 1px solid #92813540;">
+            <h2 style="text-align:center; font-family: 'Dancing Script'; color: #928135c9;">Datos de Envío</h2>
+            <p style="text-align:center; margin-bottom: 20px;">Ingresa tus datos para coordinar la entrega por WhatsApp.</p>
+            
+            <form id="formPedido">
+                <label style="display:block; font-weight:bold; color:#163415;">Nombre Completo:</label>
+                <input type="text" id="clienteNombre" class="input-dato" style="width:100%; padding:10px; margin-bottom:15px;" placeholder="Ej: María Pérez" required>
+
+                <label style="display:block; font-weight:bold; color:#163415;">Número de WhatsApp:</label>
+                <input type="tel" id="clienteTelefono" class="input-dato" style="width:100%; padding:10px; margin-bottom:15px;" placeholder="Ej: +505 8888 8888" required>
+
+                <label style="display:block; font-weight:bold; color:#163415;">Dirección Exacta:</label>
+                <textarea id="clienteDireccion" class="input-dato" style="width:100%; padding:10px; margin-bottom:15px; height: 80px;" placeholder="Ej: Altamira, de la Vicky..." required></textarea>
+
+                <button type="submit" class="boton-verde" style="width: 100%; font-size: 1.2rem;">CONFIRMAR Y ENVIAR PEDIDO</button>
+            </form>
+        </div>
+
+    </section>
+  </main>
+
+  <footer>
+    <p>&copy; 2025 Jeweler's Store. Todos los derechos reservados.</p>
+  </footer>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  
+  <script src="js/pdf.js"></script>
+  
+  
+  <script src="js/main.js"></script>
+
+  <script src="js/carrito.js?v=2"></script>
+</body>
+</html>
