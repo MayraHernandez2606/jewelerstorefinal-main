@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Perfil - Jeweler's Store</title>
+    <link rel="stylesheet" href="css/estilos.css">
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Dancing+Script&family=Georgia&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+
+    <header class="encabezado">
+        <img src="img/logo.png" alt="Logo JewelerFinal" class="logo">
+        <nav class="navegacion">
+            <a href="index.html">Inicio</a>
+            <a href="catalogo.html">Catálogo</a>
+            <a href="carrito.html">Carrito</a>
+            <a href="#" id="btnCerrarSesion" class="boton-verde" style="background-color: #45401e; color: white;">CERRAR SESIÓN</a>
+        </nav>
+    </header>
+
+    <main>
+        <section class="bienvenida1" style="padding-bottom: 10px;">
+            <h1 style="font-family: 'Great Vibes', cursive; color: #928135c9; font-size: 4rem;">Tu Zona de Cliente</h1>
+        </section>
+
+        <div class="perfil-wrapper">
+            <div id="perfil-contenido">
+                </div>
+        </div>
+    </main>
+    
+    <footer>
+        <p>&copy; 2025 Jeweler's Store. Todos los derechos reservados.</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            mostrarMensajeBienvenida();
+            
+            // Lógica de Cerrar Sesión
+            const btnCerrarSesion = document.getElementById('btnCerrarSesion');
+            if (btnCerrarSesion) {
+                btnCerrarSesion.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    if(confirm("¿Seguro que quieres cerrar sesión?")) {
+                        localStorage.removeItem('user');
+                        localStorage.removeItem('jwt');
+                        window.location.href = 'login.html';
+                    }
+                });
+            }
+        });
+
+        function mostrarMensajeBienvenida() {
+            const perfilContainer = document.getElementById('perfil-contenido');
+            const userData = localStorage.getItem('user');
+            
+            let nombre = 'Cliente';
+            let isLoggedIn = false;
+
+            if (userData) {
+                try {
+                    const user = JSON.parse(userData);
+                    nombre = user.username || 'Explorador(a)'; 
+                    isLoggedIn = true;
+                } catch (e) {}
+            }
+            
+            if (!isLoggedIn) {
+
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            const imagenPath = 'img/girly.png'; 
+            
+            const mensajeHTML = `
+                <div class="mensaje-bienvenida-card">
+                    <img src="${imagenPath}" alt="Imagen de bienvenida" class="mensaje-imagen">
+                    
+                    <h3 class="mensaje-titulo">
+                        ¡Hola, ${nombre}!
+                    </h3>
+
+                    <p class="mensaje-texto">
+                        Tu elegancia aún espera su próxima gran hazaña. 🚀<br>
+                        ¿Estás listo para iniciar esta aventura?
+                    </p>
+
+                    <a href="catalogo.html" class="boton-verde mensaje-btn">
+                        ¡Sí, vamos a explorar!
+                    </a>
+                </div>
+            `;
+
+            if (perfilContainer) {
+                perfilContainer.innerHTML = mensajeHTML;
+            }
+        }
+    </script>
+</body>
+</html>
