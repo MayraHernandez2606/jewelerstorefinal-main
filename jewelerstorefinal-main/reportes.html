@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Reportes - Privado</title>
+    <style>
+        body { font-family: 'Georgia', serif; background: #f4f4f4; padding: 40px; text-align: center; color: #163415; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 40px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        h1 { font-size: 3rem; color: #928135c9; margin-bottom: 10px; }
+        p { color: #666; margin-bottom: 40px; }
+        
+        .grid-botones { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-bottom: 30px; }
+        
+        button {
+            padding: 20px; border: none; border-radius: 10px; font-size: 1.1rem; cursor: pointer;
+            font-family: 'Georgia'; font-weight: bold; transition: transform 0.2s;
+            background-color: #163415; color: white;
+        }
+        button:hover { transform: translateY(-3px); background-color: #1e4d2b; }
+        button.mensual { background-color: #928135c9; }
+        button.anual { background-color: #d4af37; color: #163415; }
+
+        .resumen { margin-top: 30px; padding: 20px; background: #f9f9f9; border-radius: 10px; border: 1px solid #ddd; display: none;}
+    </style>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Panel de Reportes</h1>
+        <p>Generación de informes de ventas (Solo pedidos ENTREGADOS)</p>
+
+        <div class="grid-botones">
+            <button onclick="generarReporte('dia')">📄 Reporte del DÍA</button>
+            <button class="mensual" onclick="generarReporte('mes')">📊 Reporte del MES</button>
+            <button class="anual" onclick="generarReporte('anio')">📈 Reporte ANUAL</button>
+        </div>
+
+        <div id="loading" style="display:none;">Generando reporte, por favor espere...</div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:1337';
+
+        async function generarReporte(tipo) {
+            const loading = document.getElementById('loading');
+            loading.style.display = 'block';
+
+            // 1. Calcular Fechas
+            const hoy = new Date();
+            let fechaInicio = new Date();
+            let tituloReporte = "";
+
+            hoy.setHours(23, 59, 59, 999);
+
+            if (tipo === 'dia') {
+                fechaInicio.setHours(0,0,0,0);
+                tituloReporte = `Reporte de Ventas - ${hoy.toLocaleDateString()}`;
+            } else if (tipo === 'mes') {
+                fechaInicio = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+                const mes = hoy.toLocaleString('es-ES', { month: 'long' });
+                tituloReporte = `Reporte Mensual - ${mes.toUpperCase()} ${hoy.getFullYear()}`;
+            } else if (tipo === 'anio') {
+                fechaInicio = new Date(hoy.getFullYear(), 0, 1);
+                tituloReporte = `Reporte Anual - ${hoy.getFullYear()}`;
+            }
+
+            try {
+                // 2. Pedir datos a Strapi
+                const url = `${API_URL}/api/pedidos?filters[estatus][$eq]=Entregado&filters[fecha_compra][$gte]=${fechaInicio.toISOString()}&populate=*`;
+                
+                const response = await fetch(url);
+                const data = await response.json();
+                const pedidos = data.data;
+
+                if (!pedidos || pedidos.length === 0) {
+                    alert("No hay ventas entregadas en este periodo.");
+                    loading.style.display = 'none';
+                    return;
+                }
+
+                // 3. Generar el PDF
+                crearPDFReporte(pedidos, tituloReporte);
+                loading.style.display = 'none';
+
+            } catch (error) {
+                console.error(error);
+                alert("Error conectando con Strapi. Revisa que esté encendido.");
+                loading.style.display = 'none';
+            }
+        }
+
+        function crearPDFReporte(pedidos, titulo) {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            // Encabezado
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(22);
+            doc.setTextColor(22, 52, 21); // Verde
+            doc.text("Jeweler's Store", 105, 20, { align: "center" });
+            
+            doc.setFontSize(16);
+            doc.setTextColor(212, 175, 55); // Dorado
+            doc.text(titulo, 105, 30, { align: "center" });
+
+            // Preparar datos para la tabla
+            let totalVentas = 0;
+            const filas = pedidos.map(p => {
+                const d = p.attributes ? p.attributes : p;
+                totalVentas += d.total;
+                
+                //logicca vendedor//
+                let nombreVendedor = "Sin asignar";
+                const v = d.vendedor;
+
+                if (v) {
+                    // Intento 1: Strapi v5 directo (campo 'nombre' o 'nombre_completo')
+                    if (v.nombre) nombreVendedor = v.nombre;
+                    else if (v.nombre_completo) nombreVendedor = v.nombre_completo;
+                    
+                    // Intento 2: Strapi v4 (dentro de data.attributes)
+                    else if (v.data && v.data.attributes) {
+                        const attrs = v.data.attributes;
+                        nombreVendedor = attrs.nombre || attrs.nombre_completo || "Sin Nombre";
+                    }
+                }
+
+                const fecha = new Date(d.fecha_compra).toLocaleDateString();
+
+                return [
+                    fecha,
+                    `#${p.id}`,
+                    d.nombre_contacto,
+                    nombreVendedor, // Aquí va el nombre encontrado
+                    `C$ ${d.total.toFixed(2)}`
+                ];
+            });
+
+            // Generar Tabla Automática
+            doc.autoTable({
+                startY: 40,
+                head: [['Fecha', 'ID', 'Cliente', 'Vendedor', 'Monto']],
+                body: filas,
+                theme: 'grid',
+                headStyles: { fillColor: [22, 52, 21], textColor: 255 },
+                alternateRowStyles: { fillColor: [245, 245, 245] },
+                styles: { font: "helvetica", fontSize: 10 }
+            });
+
+            // Total Final
+            const finalY = doc.lastAutoTable.finalY + 15;
+            doc.setFontSize(14);
+            doc.setTextColor(0, 0, 0);
+            doc.text(`Total Vendido: C$ ${totalVentas.toFixed(2)}`, 195, finalY, { align: "right" });
+
+            // Descargar
+            doc.save(`${titulo.replace(/ /g, "_")}.pdf`);
+        }
+    </script>
+</body>
+</html>

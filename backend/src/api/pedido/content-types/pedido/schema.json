@@ -1,0 +1,64 @@
+{
+  "kind": "collectionType",
+  "collectionName": "pedidos",
+  "info": {
+    "singularName": "pedido",
+    "pluralName": "pedidos",
+    "displayName": "pedido"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "productos_comprados": {
+      "type": "json"
+    },
+    "total": {
+      "type": "decimal"
+    },
+    "fecha_compra": {
+      "type": "datetime"
+    },
+    "estatus": {
+      "type": "enumeration",
+      "default": "Recibida",
+      "enum": [
+        "Recibida",
+        "Atendida",
+        "Entregado"
+      ]
+    },
+    "nombre_contacto": {
+      "type": "string"
+    },
+    "telefono": {
+      "type": "string"
+    },
+    "direccion": {
+      "type": "text"
+    },
+    "cliente": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user",
+      "inversedBy": "pedidos"
+    },
+    "comprobante": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
+    },
+    "vendedor": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::vendedor.vendedor",
+      "inversedBy": "pedidos"
+    }
+  }
+}

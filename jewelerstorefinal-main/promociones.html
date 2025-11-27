@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="utf-8"/>
+    <title>Promociones - JewelerFinal</title>
+    <link href="css/estilos.css" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Dancing+Script&display=swap" rel="stylesheet">
+    <script src="js/carrito.js" defer></script>
+</head>
+<body>
+    <header class="encabezado">
+        <img alt="Logo JewelerFinal" class="logo" src="img/logo.png"/>
+        <nav class="navegacion">
+            <a href="index.html">Inicio</a>
+            <a href="catalogo.html">Catálogo</a>
+            <a href="quienes-somos.html">Quiénes Somos</a>
+            <a href="carrito.html">Carrito</a>
+        </nav>
+    </header>
+
+    <main>
+        <a class="boton-verde" href="index.html" style="margin: 20px;">Regresar</a>
+
+        <section class="promo-banner">
+            <img alt="Promo 1" src="img/promocion1.jpg"/>
+            <div class="promo-texto">
+                <h1>¡Descuentos Exclusivos!<br/> Aprovecha nuestras ofertas especiales</h1>
+            </div>
+        </section>
+
+        <div class="seccion-verde" style="display: block; min-height: 400px;">
+            <h2 style="text-align:center; color:white; font-family:'Great Vibes', cursive; font-size: 3rem; margin-bottom: 20px;">
+                Productos en Oferta
+            </h2>
+            
+            <div class="productos-grid" id="contenedor-productos" data-categoria="ofertas">
+                <p style="text-align:center; color: white; font-size: 20px;">Cargando mejores ofertas...</p>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 Jeweler's Store. Todos los derechos reservados.</p>
+    </footer>
+
+    <script src="js/app.js"></script>
+</body>   
+</html>
