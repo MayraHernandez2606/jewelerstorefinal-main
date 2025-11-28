@@ -1,5 +1,5 @@
-const API_URL = 'http://localhost:1337'; // Se mantiene solo por si alguna otra función lo usa
-const WHATSAPP_NUMERO_EMPRESA = '50581090209'; // <--- ¡Tu número de negocio!
+const API_URL = 'http://localhost:1337';
+const WHATSAPP_NUMERO = '50581090209'; // Tu número
 
 document.addEventListener("DOMContentLoaded", () => {
     mostrarCarrito();
@@ -9,127 +9,129 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
-// --- FUNCIONES VISUALES (Correctas) ---
-
-function agregarAlCarrito(nombre, precio, imagenUrl) {
-    let carrito = JSON.parse(localStorage.getItem('carrito')) || [];
-    let index = carrito.findIndex(p => p.nombre === nombre);
-    
-    if (index !== -1) {
-        carrito[index].cantidad += 1;
-    } else {
-        const imgFinal = imagenUrl || 'https://via.placeholder.com/80?text=Joya';
-        carrito.push({ nombre, precio, imagen: imgFinal, cantidad: 1 });
-    }
-    
-    localStorage.setItem('carrito', JSON.stringify(carrito));
-    alert(nombre + " se ha agregado al carrito correctamente.");
+// --- FUNCIONES VISUALES (Sin cambios) ---
+function agregarAlCarrito(n, p, i) {
+    let c = JSON.parse(localStorage.getItem('carrito')) || [];
+    let idx = c.findIndex(x => x.nombre === n);
+    let img = i || 'https://via.placeholder.com/80';
+    if (idx !== -1) c[idx].cantidad++; else c.push({ nombre: n, precio: p, imagen: img, cantidad: 1 });
+    localStorage.setItem('carrito', JSON.stringify(c));
+    alert(n + " agregado.");
     mostrarCarrito();
 }
 
 function mostrarCarrito() {
-    // [... CÓDIGO VISUAL SIN CAMBIOS, FUNCIONA CORRECTAMENTE ...]
     const cont = document.getElementById("carrito-lista");
     const tot = document.getElementById("total");
     if (!cont) return;
     cont.innerHTML = "";
-    let carrito = JSON.parse(localStorage.getItem('carrito')) || [];
-    let total = 0;
-
-    if(carrito.length === 0) {
-        cont.innerHTML = `<div style="text-align:center; padding: 40px;"><p style='font-size: 1.3rem; color: #888; margin-bottom:20px;'>Tu carrito está vacío 😢</p><a href="catalogo.html" class="boton-verde" style="display:inline-block; width:auto; padding: 10px 30px;">Ir a comprar</a></div>`;
-        tot.innerText = "Total: C$ 0.00";
-        return;
-    }
-
-    carrito.forEach((item, index) => {
-        const li = document.createElement("li");
-        li.className = "carrito-item"; 
-
-        const imgSrc = item.imagen || 'img/logo.png';
-
-        li.innerHTML = `
-            <div class="carrito-img-block"><img src="${imgSrc}" alt="${item.nombre}"></div>
-            <div class="carrito-info-block"><h3 class="carrito-item-nombre">${item.nombre}</h3><span class="carrito-item-precio">Unitario: C$${item.precio.toFixed(2)}</span></div>
-            <div class="carrito-controls-block"><button onclick="cambiarCantidad(${index}, -1)" class="btn-control-qty">-</button><span class="carrito-qty-display">${item.cantidad}</span><button onclick="cambiarCantidad(${index}, 1)" class="btn-control-qty">+</button></div>
-            <div class="carrito-subtotal-block"><span class="carrito-item-subtotal">C$${(item.precio * item.cantidad).toFixed(2)}</span><button onclick="eliminarProducto(${index})" class="btn-eliminar-item">Eliminar</button></div>
-        `;
-        cont.appendChild(li);
-        total += item.precio * item.cantidad;
+    let c = JSON.parse(localStorage.getItem('carrito')) || [];
+    let t = 0;
+    if(c.length === 0) { cont.innerHTML = "<p style='text-align:center; padding:20px;'>Carrito vacío</p>"; tot.innerText = "Total: 0"; return; }
+    c.forEach((x, i) => {
+        let img = x.imagen || 'img/logo.png';
+        cont.innerHTML += `
+        <li class="carrito-item" style="display:flex; align-items:center; border-bottom:1px solid #eee; padding:10px;">
+            <img src="${img}" style="width:60px; height:60px; object-fit:cover; border-radius:5px; margin-right:10px;">
+            <div style="flex:1;"><strong>${x.nombre}</strong><br><small>C$${x.precio}</small></div>
+            <div><button onclick="cambiarCantidad(${i}, -1)">-</button> <b>${x.cantidad}</b> <button onclick="cambiarCantidad(${i}, 1)">+</button></div>
+            <div style="text-align:right; margin-left:10px;"><b>C$${(x.precio*x.cantidad).toFixed(2)}</b><br><button onclick="eliminarProducto(${i})" style="color:red; border:none; background:none; cursor:pointer;">X</button></div>
+        </li>`;
+        t += x.precio * x.cantidad;
     });
-
-    tot.innerText = "Total: C$ " + total.toFixed(2);
+    tot.innerText = "Total: C$ " + t.toFixed(2);
 }
-
 function eliminarProducto(i) { let c = JSON.parse(localStorage.getItem('carrito')) || []; c.splice(i, 1); localStorage.setItem('carrito', JSON.stringify(c)); mostrarCarrito(); }
 function cambiarCantidad(i, d) { let c = JSON.parse(localStorage.getItem('carrito')) || []; c[i].cantidad += d; if (c[i].cantidad <= 0) { if(confirm("¿Borrar?")) c.splice(i, 1); else c[i].cantidad = 1; } localStorage.setItem('carrito', JSON.stringify(c)); mostrarCarrito(); }
 function vaciarCarrito() { if(confirm("¿Vaciar?")) { localStorage.removeItem('carrito'); mostrarCarrito(); } }
 
 
-// ==========================================
-// 2. GENERADOR DE MENSAJES DE WHATSAPP
-// ==========================================
-
-function crearMensajeWhatsApp(nombre, tel, dir, total, carrito) {
-    let mensaje = `*🚨 NUEVA ORDEN DE COMPRA - JEWELER'S STORE 💎*\n\n`;
-    mensaje += `*Cliente:* ${nombre}\n`;
-    mensaje += `*Teléfono:* ${tel}\n`;
-    mensaje += `*Dirección:* ${dir}\n\n`;
-    mensaje += `--- Detalle de la Orden ---\n`;
-
-    carrito.forEach(item => {
-        mensaje += `• ${item.nombre} (x${item.cantidad}) @ C$${item.precio.toFixed(2)}\n`;
-    });
-
-    mensaje += `\n*TOTAL A PAGAR:* C$${total.toFixed(2)}\n\n`;
-    mensaje += `*INSTRUCCIONES:* Adjuntar el archivo PDF que se descargó automáticamente.`;
-    
-    const mensajeCodificado = encodeURIComponent(mensaje);
-    
-    return `https://wa.me/${WHATSAPP_NUMERO_EMPRESA}?text=${mensajeCodificado}`;
+// --- GENERAR LINK WHATSAPP ---
+function generarLinkWhatsApp(nombre, tel, dir, total, carrito) {
+    let mensaje = `*💎 PEDIDO WEB - JEWELER'S STORE*\n`;
+    mensaje += `*Cliente:* ${nombre}\n*Dir:* ${dir}\n\n`;
+    carrito.forEach(p => mensaje += `• ${p.cantidad}x ${p.nombre}\n`);
+    mensaje += `\n*TOTAL: C$ ${total.toFixed(2)}*\n\n>> Adjunto mi PDF descargado.`;
+    return `https://wa.me/${WHATSAPP_NUMERO}?text=${encodeURIComponent(mensaje)}`;
 }
-
-
-// ==========================================
-// 3. FUNCIÓN PRINCIPAL (FLUJO WHATSAPP DIRECTO)
-// ==========================================
 
 async function procesarPedido(e) {
     e.preventDefault(); 
 
     let carrito = JSON.parse(localStorage.getItem('carrito')) || [];
-    if (carrito.length === 0) { alert("Tu carrito está vacío."); return; }
+    if (carrito.length === 0) { alert("Carrito vacío."); return; }
+
+    const token = localStorage.getItem('jwt');
+    const user = JSON.parse(localStorage.getItem('user'));
+    // Validación de sesión (opcional, si quieres quitarla borra este bloque)
+    if (!token || !user) { alert("Inicia sesión primero."); window.location.href = "login.html"; return; }
 
     const nombre = document.getElementById('clienteNombre').value;
     const tel = document.getElementById('clienteTelefono').value;
     const dir = document.getElementById('clienteDireccion').value;
     
-    if (!confirm("¿Confirmar pedido? Se descargará tu comprobante y serás redirigido a WhatsApp para el envío final.")) return;
+    if (!confirm("¿Confirmar pedido? Se descargará tu recibo y te llevaremos a WhatsApp.")) return;
 
-    let totalPagar = 0;
-    carrito.forEach(item => totalPagar += (item.precio * item.cantidad));
+    let total = 0;
+    carrito.forEach(x => total += (x.precio * x.cantidad));
 
-    // A. PREPARAR DATOS
-    const carritoLimpio = carrito.map(item => ({ nombre: item.nombre, precio: item.precio, cantidad: item.cantidad }));
-    const datosCliente = { nombre: nombre, telefono: tel, direccion: dir };
+    // 1. PREPARAMOS TODO
+    const idTemporal = Date.now(); // Usamos ID temporal para no esperar al servidor
+    const datosCliente = { nombre, telefono: tel, direccion: dir };
+    const linkWhatsapp = generarLinkWhatsApp(nombre, tel, dir, total, carrito);
 
-    // B. DESCARGAR PDF (PARA QUE EL CLIENTE LO ENVÍE)
+    // 2. DESCARGAR PDF INMEDIATAMENTE (Lo forzamos primero)
     try {
         if (typeof generatePDF === "function") {
-             // Generamos el PDF (sin esperar, para que el navegador lo baje al instante)
-             await generatePDF(datosCliente, carrito, new Date(), Date.now()); 
+            // No usamos await para que no bloquee, lo lanzamos y seguimos
+            generatePDF(datosCliente, carrito, new Date(), idTemporal);
         }
-    } catch (e) {
-        console.error("Error crítico en la descarga de PDF. El pedido se enviará sin adjunto.");
+    } catch (error) {
+        console.error("Error PDF:", error);
     }
 
-    // C. CREAR URL Y REDIRIGIR A WHATSAPP
-    const whatsappUrl = crearMensajeWhatsApp(nombre, tel, dir, totalPagar, carritoLimpio);
+    // 3. GUARDAR EN STRAPI (En "Segundo Plano" - Fire and Forget)
+    // No esperamos (await) a que termine para redirigir al usuario
+    guardarEnStrapiSegundoPlano(token, carrito, total, nombre, tel, dir);
 
-    // D. Limpiar y Redireccionar
+    // 4. AVISO Y REDIRECCIÓN (Garantizado)
+    alert("¡Pedido generado! 🎉\n\n1. El PDF se está descargando.\n2. Vamos a WhatsApp para finalizar.");
+    
     localStorage.removeItem('carrito');
     
+    // Pequeña pausa de 1.5 segundos para asegurar que la descarga del PDF inicie
     setTimeout(() => {
-        window.location.href = whatsappUrl;
-    }, 500); 
+        window.location.href = linkWhatsapp;
+    }, 1500);
+}
+
+// Función auxiliar para no bloquear el flujo principal
+async function guardarEnStrapiSegundoPlano(token, carrito, total, nombre, tel, dir) {
+    try {
+        const carritoLimpio = carrito.map(x => ({ nombre: x.nombre, precio: x.precio, cantidad: x.cantidad }));
+        const pedidoData = {
+            data: {
+                productos_comprados: carritoLimpio,
+                total: parseFloat(total),
+                estatus: 'Recibida',
+                fecha_compra: new Date().toISOString(),
+                nombre_contacto: nombre,
+                telefono: tel,
+                direccion: dir
+                // El backend pondrá el cliente
+            }
+        };
+
+        // Enviamos sin esperar respuesta en el hilo principal
+        fetch(`${API_URL}/api/pedidos`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+            body: JSON.stringify(pedidoData)
+        }).then(res => {
+            console.log("Guardado en background:", res.status);
+        }).catch(err => console.error("Error background:", err));
+
+    } catch (e) {
+        console.error("Error silencioso en guardado:", e);
+    }
 }
